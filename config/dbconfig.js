@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require('sequelize');  // Importation de DataTypes
+const { Sequelize, DataTypes } = require('sequelize');
 const utilisateurModel = require('../model/utilisateur');
 const articleModel = require('../model/article');
 const orderModel = require('../model/order');
@@ -35,7 +35,7 @@ const ArticleOrder = articleOrderModel(sequelize, DataTypes);
 const Newsletter = newsletterModel(sequelize, DataTypes);
 
 // Synchronisation des modèles
-sequelize.sync({ force: true })    // Attention, `force: true` supprime les tables existantes
+sequelize.sync({ force: true })
    .then(() => {
       console.log('Modèles synchronisés avec la base de données');
    })
