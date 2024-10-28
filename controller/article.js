@@ -1,4 +1,4 @@
-const { Article } = require('../model/article');
+const { Article } = require('../config/dbconfig');
 
 const ArticleController = {
     async getAllArticles(req, res) {
