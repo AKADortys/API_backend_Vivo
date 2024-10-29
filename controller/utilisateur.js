@@ -1,7 +1,35 @@
-const {Utilisateur} = require('../config/dbconfig');
+const { Utilisateur } = require('../config/dbconfig');
+const validator = require('validator');
 
 let UtilisateurController = {
-    //retourne tout les utilisateurs
+    // Méthode de vérification des données utilisateur
+    CheckData(data) {
+        const { mail, pwd, phone, nom, prenom } = data;
+        
+        if (!validator.isEmail(mail)) {
+            return { valid: false, message: "L'email n'est pas valide !" };
+        }
+        
+        if (!validator.isLength(pwd, { min: 6, max: 100 })) {
+            return { valid: false, message: "Le mot de passe doit contenir entre 6 et 100 caractères." };
+        }
+        
+        if (!validator.isMobilePhone(phone, 'fr-FR')) {
+            return { valid: false, message: "Le numéro de téléphone n'est pas valide." };
+        }
+        
+        if (!validator.isLength(nom, { min: 2, max: 50 })) {
+            return { valid: false, message: "Le nom doit contenir entre 2 et 50 caractères." };
+        }
+        
+        if (!validator.isLength(prenom, { min: 2, max: 50 })) {
+            return { valid: false, message: "Le prénom doit contenir entre 2 et 50 caractères." };
+        }
+        
+        return { valid: true };
+    },
+
+    // Retourne tous les utilisateurs
     async getAllUtilisateurs(req, res) {
         try {
             const utilisateurs = await Utilisateur.findAll();
@@ -11,7 +39,8 @@ let UtilisateurController = {
             res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs' });
         }
     },
-    //Recherche sur id
+
+    // Recherche par ID
     async getUtilisateurById(req, res) {
         try {
             const utilisateur = await Utilisateur.findByPk(req.params.id);
@@ -22,9 +51,12 @@ let UtilisateurController = {
             res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur' });
         }
     },
-    //Ajouter
+
+    // Ajouter un utilisateur
     async addUtilisateur(req, res) {
         try {
+            const validation = this.CheckData(req.body);
+            if (!validation.valid) return res.status(400).json({ message: validation.message });
             const utilisateur = await Utilisateur.create(req.body);
             res.status(201).json(utilisateur);
         } catch (error) {
@@ -32,11 +64,16 @@ let UtilisateurController = {
             res.status(400).json({ message: 'Erreur lors de l\'ajout de l\'utilisateur' });
         }
     },
-    //Modifier
+
+    // Mettre à jour un utilisateur
     async updateUtilisateur(req, res) {
         try {
             const utilisateur = await Utilisateur.findByPk(req.params.id);
             if (!utilisateur) return res.status(404).json({ message: 'Utilisateur introuvable' });
+            
+            const validation = this.CheckData(req.body);
+            if (!validation.valid) return res.status(400).json({ message: validation.message });
+            
             await utilisateur.update(req.body);
             res.json(utilisateur);
         } catch (error) {
@@ -44,7 +81,8 @@ let UtilisateurController = {
             res.status(400).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur' });
         }
     },
-    //Supprimer
+
+    // Supprimer un utilisateur
     async deleteUtilisateur(req, res) {
         try {
             const utilisateur = await Utilisateur.findByPk(req.params.id);
@@ -56,7 +94,6 @@ let UtilisateurController = {
             res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
         }
     }
-    
-}
+};
 
 module.exports = UtilisateurController;

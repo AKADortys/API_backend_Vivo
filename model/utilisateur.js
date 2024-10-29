@@ -16,39 +16,36 @@ module.exports = (sequelize, DataTypes) => {
       },
       mail: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
         unique: true,
         validate: {
           isEmail: { args: true, msg: 'L\'email fourni n\'est pas valide !' }
         }
       },
-      admin: {
-        type: DataTypes.BOOLEAN,
+      phone: {
+        type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: false
+        validate: {
+          is: { args: /^[0-9+]*$/, msg: 'Le numéro de téléphone doit être valide.' }
+        }
       },
       nom: {
         type: DataTypes.STRING,
-        allowNull: true, // Autorise la valeur null
+        allowNull: false,
         validate: {
-          is: { args: /^[a-zA-Z]+$/, msg: 'Le nom ne peut contenir que des lettres alphabétiques.' }
+          is: { args: /^[a-zA-Zàâçéèêëîïôûùüÿñæœ\s-]+$/, msg: 'Le nom ne peut contenir que des lettres alphabétiques.' }
         }
       },
       prenom: {
         type: DataTypes.STRING,
-        allowNull: true, // Autorise la valeur null
+        allowNull: false,
         validate: {
-          is: { args: /^[a-zA-Z]+$/, msg: 'Le prénom ne peut contenir que des lettres alphabétiques.' }
+          is: { args: /^[a-zA-Zàâçéèêëîïôûùüÿñæœ\s-]+$/, msg: 'Le prénom ne peut contenir que des lettres alphabétiques.' }
         }
       },
-      date_inscri: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize.fn('NOW')
-      }
     }, {
       tableName: 'Utilisateur',
-      timestamps: false
+      timestamps: true
     });
   
     // Fonction pour hacher le mot de passe avant l'insertion
