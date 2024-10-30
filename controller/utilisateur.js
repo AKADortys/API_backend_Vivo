@@ -1,5 +1,7 @@
 const { Utilisateur } = require('../config/dbconfig');
 const validator = require('validator');
+const bcrypt = require('bcrypt');
+
 
 let UtilisateurController = {
     // Méthode de vérification des données utilisateur
@@ -33,6 +35,36 @@ let UtilisateurController = {
     
         return { valid: true };
     },
+// Méthode pour la connexion
+async connect(req, res) {
+    try {
+        console.log(req.body)
+        // Recherche de l'utilisateur par email
+        const utilisateur = await Utilisateur.findOne({ where: { mail: req.body.mail } });
+        
+        // Vérification de l'existence de l'utilisateur
+        if (!utilisateur) {
+            return res.status(404).json({ message: 'Utilisateur introuvable' });
+        }
+        
+        // Vérification du mot de passe
+        const isPasswordValid = await bcrypt.compare(req.body.pwd, utilisateur.pwd);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Mot de passe incorrect' });
+        }
+        
+        // Suppression du mot de passe avant de retourner la réponse
+        const utilisateurData = { ...utilisateur.toJSON() };
+        delete utilisateurData.pwd;
+        console.log(utilisateurData);
+        res.json({ success: true, utilisateur: utilisateurData });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Erreur interne lors de la connexion' });
+    }
+}
+,
     // Retourne tous les utilisateurs
     async getAllUtilisateurs(req, res) {
         try {
