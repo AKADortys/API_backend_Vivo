@@ -1,8 +1,8 @@
-const { Order, Article } = require("../config/dbconfig");
+const { Order, Article,User } = require("../config/dbconfig");
 const validator = require("validator");
 
 const OrderController = {
-  CheckData(data) {
+ async CheckData(data) {
     const { id_user, id_article, quantity, totalQuantity, totalPrice } = data;
 
     if (!validator.isInt(id_user.toString())) {
@@ -20,19 +20,13 @@ const OrderController = {
     if (!validator.isInt(totalQuantity.toString())) {
       return { valid: false, message: "Le total de la quantité d'article n'est pas valide!" };
     }
+    const user = await User.findByPk(id_user);
+    if (!user) {
+      return { valid: false, message: "L'utilisateur est introuvable!" };
+    }
+
 
     return { valid: true };
-  },
-
-  async validateArticle(id_article) {
-    try {
-      const article = await Article.findByPk(id_article);
-      if (!article) return { valid: false, message: "Article introuvable" };
-      if (!article.available) return { valid: false, message: "L'article est indisponible pour la commande!" };
-      return { valid: true, article };  // On renvoie l'article pour éviter de refaire une requête plus tard
-    } catch (error) {
-      return { valid: false, message: "Erreur lors de la vérification de l'article" };
-    }
   },
 
   async getAllOrders(req, res) {
@@ -58,7 +52,7 @@ const OrderController = {
     const transaction = await Order.sequelize.transaction();
     try {
       // Validation des données entrantes
-      const dataCheck = this.CheckData(req.body);
+      const dataCheck = await this.CheckData(req.body);
       if (!dataCheck.valid) {
         return res.status(422).json({ message: dataCheck.message });
       }
@@ -91,7 +85,7 @@ const OrderController = {
       const order = await Order.findByPk(req.params.id);
       if (!order) return res.status(404).json({ message: "Commande introuvable" });
 
-      const dataCheck = this.CheckData(req.body);
+      const dataCheck = await this.CheckData(req.body);
       if (!dataCheck.valid) {
         return res.status(422).json({ message: dataCheck.message });
       }
