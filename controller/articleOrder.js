@@ -1,4 +1,4 @@
-const { ArticleOrder,Order, Article } = require('../config/dbconfig');
+const { ArticleOrder } = require('../config/dbconfig');
 const validator = require('validator');
 
 const ArticleOrderController = {
@@ -25,18 +25,6 @@ const ArticleOrderController = {
     return { valid: true };
   },
 
-  // Vérification de la disponibilité et du stock de l'article
-  async validateArticle(articleId, requiredQuantity) {
-    try {
-      const article = await Article.findByPk(articleId);
-      if (!article) return { valid: false, message: "Article introuvable" };
-      if (!article.available) return { valid: false, message: "L'article est indisponible pour la commande !" };
-      if (article.quantity < requiredQuantity) return { valid: false, message: "Stock insuffisant pour la commande !" };
-      return { valid: true, article };
-    } catch (error) {
-      return { valid: false, message: "Erreur lors de la vérification de l'article" };
-    }
-  },
 
   // Création d'un article dans une commande
   async createArticleOrder(req, res) {
@@ -60,32 +48,10 @@ const ArticleOrderController = {
     }
   },
 
-  // Récupération de tous les articles dans les commandes
-  async getAllArticleOrders(req, res) {
-    try {
-      const articleOrders = await ArticleOrder.findAll();
-      res.json(articleOrders);
-    } catch (error) {
-      res.status(500).json({ message: "Erreur lors de la récupération des articles de commande" });
-    }
-  },
-
-  // Récupération d'un article d'une commande par ID
-  async getArticleOrderById(req, res) {
-    try {
-      const articleOrder = await ArticleOrder.findOne({
-        where: { articleId: req.params.articleId, orderId: req.params.orderId }
-      });
-      if (!articleOrder) return res.status(404).json({ message: "Article de commande introuvable" });
-      res.json(articleOrder);
-    } catch (error) {
-      res.status(500).json({ message: "Erreur lors de la récupération de l'article de commande" });
-    }
-  },
 
   // Mise à jour d'un article dans une commande
   async updateArticleOrder(req, res) {
-    const { articleId, orderId, label, price, quantity } = req.body;
+    const { articleId, orderId } = req.body;
 
     const dataCheck = this.checkData(req.body);
     if (!dataCheck.valid) {
