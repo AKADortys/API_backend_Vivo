@@ -1,6 +1,7 @@
 const { Article } = require('../config/dbconfig');
 const validator =require('validator');
 
+
 const ArticleController = {
 
     checkdata(data) {
@@ -48,7 +49,7 @@ const ArticleController = {
     },
     async addArticle(req, res) {
         try {
-            const { valid, message } = this.checkdata(req.body);
+            const { valid, message } = ArticleController.checkdata(req.body);
             if (!valid) return res.status(400).json({ message });
             const article = await Article.create(req.body);
             res.status(201).json(article);
@@ -60,7 +61,7 @@ const ArticleController = {
         try {
             const article = await Article.findByPk(req.params.id);
             if (!article) return res.status(404).json({ error: 'Article introuvable' });
-            const { valid, message } = this.checkdata(req.body);
+            const { valid, message } = ArticleController.checkdata(req.body);
             if (!valid) return res.status(400).json({ message });
             await article.update(req.body);
             res.json(article);
