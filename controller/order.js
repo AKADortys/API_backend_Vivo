@@ -1,5 +1,4 @@
-const { Order, Article, User } = require("../config/dbconfig");
-const { ArticleOrderController} = require("./articleOrder");
+const { Order, Article, User, ArticleOrder } = require("../config/dbconfig");
 const validator = require("validator");
 
 const OrderController = {
@@ -10,8 +9,6 @@ async validateArticle(articleId, requiredQuantity) {
     if (!article) return { valid: false, message: "Article introuvable" };
     if (!article.available) return { valid: false, message: "L'article est indisponible pour la commande !" };
     if (article.quantity < requiredQuantity) return { valid: false, message: "Stock insuffisant pour la commande !" };
-
-    // Déduction du stock temporairement pour cette opération
     article.quantity -= requiredQuantity;
     await article.save();
 
@@ -68,7 +65,7 @@ async validateArticle(articleId, requiredQuantity) {
 
   async GetCurrentOrder(user_id) {
     try{
-      if (!user_id || isInt(user_id)) return res.status(404).json({ message : "paramètre manquant ou invalide ! user_id"})
+      if (!user_id || !isInt(user_id)) return res.status(404).json({ message : "paramètre manquant ou invalide ! user_id"})
       const user = await User.findByPk(user_id);
       if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
       const order = await Order.findOne({where:{id_user : user_id, isConfirmed : false}})
@@ -82,27 +79,6 @@ async validateArticle(articleId, requiredQuantity) {
     }
   },
 
-  async updateOrder(req, res) {
-    try {
-      const order = await Order.findByPk(req.params.id);
-      if (!order) return res.status(404).json({ message: "Commande introuvable" });
-
-      const dataCheck = await this.CheckData(req.body);
-      if (!dataCheck.valid) {
-        return res.status(422).json({ message: dataCheck.message });
-      }
-
-      const articleValidation = await this.validateArticle(req.body.id_article, req.body.quantity);
-      if (!articleValidation.valid) {
-        return res.status(422).json({ message: articleValidation.message });
-      }
-
-      await order.update(req.body);
-      res.json(order);
-    } catch (error) {
-      res.status(500).json({ message: "Erreur lors de la mise à jour de la commande" });
-    }
-  },
 
   async deleteOrder(req, res) {
     try {
@@ -161,13 +137,66 @@ async validateArticle(articleId, requiredQuantity) {
       order.totalQuantity += quantity;
       order.totalPrice += articleValidation.article.price * quantity;
   
+      await ArticleOrder.create({
+        articleId: articleValidation.article.id,       
+        orderId: order.id,        
+        label: articleValidation.article.label, 
+        price: articleValidation.article.price,       
+        quantity: quantity        
+      });
       await order.save();
       res.json(order);
     } catch (error) {
+      console.error("Erreur lors de l'ajout de l'article à la commande :", error);
       res.status(500).json({ message: "Erreur lors de l'ajout de l'article à la commande", error: error.message });
     }
+  },
+  async DeleteArticleFromOrder(req, res) {
+    try {
+      // Rechercher la commande par ID
+      const order = await Order.findByPk(req.params.id_order);
+      if (!order) return res.status(404).json({ message: "Commande introuvable" });
+  
+      // Récupérer l'ID de l'article à supprimer depuis le corps de la requête
+      const { id_article } = req.body;
+      if (!id_article) {
+        return res.status(400).json({ message: "ID d'article manquant" });
+      }
+  
+      // Rechercher l'article dans ArticleOrder pour cette commande
+      const articleOrder = await ArticleOrder.findOne({
+        where: {
+          orderId: order.id,
+          articleId: id_article,
+        },
+      });
+  
+      // Si l'article n'est pas trouvé dans la commande
+      if (!articleOrder) {
+        return res.status(404).json({ message: "Article non trouvé dans la commande" });
+      }
+  
+      // Mise à jour des totaux de la commande
+      order.totalQuantity -= articleOrder.quantity;
+      order.totalPrice -= articleOrder.price * articleOrder.quantity;
+      
+      // Assurer que les valeurs ne soient pas négatives
+      if (order.totalQuantity < 0) order.totalQuantity = 0;
+      if (order.totalPrice < 0) order.totalPrice = 0;
+  
+      // Sauvegarder la commande mise à jour
+      await order.save();
+  
+      // Supprimer l'article de la table ArticleOrder
+      await articleOrder.destroy();
+  
+      res.json(order);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'article de la commande :", error); // Log pour le serveur
+      res.status(500).json({ message: "Erreur lors de la suppression de l'article de la commande", error: error.message });
+    }
   }
-    
+  
 };
 
 module.exports = OrderController;
