@@ -99,23 +99,53 @@ async connect(req, res) {
             res.status(400).json({ message: 'Erreur lors de l\'ajout de l\'utilisateur' });
         }
     },
-
-    // Mettre à jour un utilisateur
     async updateUtilisateur(req, res) {
         try {
             const utilisateur = await Utilisateur.findByPk(req.params.id);
             if (!utilisateur) return res.status(404).json({ message: 'Utilisateur introuvable' });
             
-            const validation = this.CheckData(req.body);
-            if (!validation.valid) return res.status(400).json({ message: validation.message });
-            
+            const { nom, prenom, mail, phone, pwd } = req.body;
+    
+            // Validation des champs
+            if (nom && !validator.isAlpha(nom, 'fr-FR', { ignore: " -" })) {
+                return res.status(400).json({ message: 'Nom invalide : seules les lettres, espaces et tirets sont autorisés.' });
+            }
+            else if(nom ===''){delete req.body.nom}
+
+            if (prenom && !validator.isAlpha(prenom, 'fr-FR', { ignore: " -" })) {
+                return res.status(400).json({ message: 'Prénom invalide : seules les lettres, espaces et tirets sont autorisés.' });
+            }
+            else if(prenom ===''){delete req.body.prenom}
+
+            if (mail && !validator.isEmail(mail)) {
+                return res.status(400).json({ message: 'Email invalide' });
+            }
+            else if(mail ===''){delete req.body.mail}
+
+            if (phone && !validator.isMobilePhone(phone, 'fr-BE')) {
+                return res.status(400).json({ message: 'Numéro de téléphone invalide' });
+            }
+            else if(phone ===''){delete req.body.phone}
+
+    
+            // Vérifie et hache le mot de passe si fourni
+            if (pwd && pwd !== '') {
+                const hashedPwd = await bcrypt.hash(pwd, 10);
+                req.body.pwd = hashedPwd;
+            } else {
+                delete req.body.pwd;
+            }
+    
+            // Mise à jour de l'utilisateur avec les nouvelles données
             await utilisateur.update(req.body);
-            res.json(utilisateur);
+    
+            res.json({ message: 'Utilisateur mis à jour avec succès', utilisateur });
         } catch (error) {
             console.error(error);
             res.status(400).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur' });
         }
     },
+    
 
     // Supprimer un utilisateur
     async deleteUtilisateur(req, res) {

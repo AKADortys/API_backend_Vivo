@@ -1,4 +1,4 @@
-const { Order, Article, User, ArticleOrder } = require("../config/dbconfig");
+const { Order, Article, Utilisateur, ArticleOrder } = require("../config/dbconfig");
 const validator = require("validator");
 
 const OrderController = {
@@ -94,32 +94,52 @@ const OrderController = {
         .json({ message: "Erreur lors de la récupération de la commande" });
     }
   },
-  async GetCurrentOrder(user_id) {
+  
+  async GetCurrentOrder(req, res) {
     try {
-      if (!user_id || !validator.isInt(user_id.toString())) {
-        return {
-          valid: false,
-          message: "paramètre manquant ou invalide: user_id",
-        };
-      }
-      const user = await User.findByPk(user_id);
-      if (!user) return { valid: false, message: "Utilisateur introuvable" };
+        const user_id = req.params.user_id;
+        // Validation de `user_id`
+        if (!user_id || !validator.isInt(user_id.toString())) {
+            return res.status(400).json({
+                valid: false,
+                message: "Paramètre manquant ou invalide: user_id",
+            });
+        }
 
-      let order = await Order.findOne({
-        where: { id_user: user_id, isConfirmed: false },
-      });
-      if (!order) {
-        order = await Order.create({ id_user: user_id });
-      }
-      return { valid: true, order };
+        // Recherche de l'utilisateur
+        const user = await Utilisateur.findByPk(user_id);
+        if (!user) {
+            return res.status(404).json({
+                valid: false,
+                message: "Utilisateur introuvable",
+            });
+        }
+
+        // Recherche de la commande non confirmée
+        let order = await Order.findOne({
+            where: { id_user: user_id, isConfirmed: false },
+        });
+
+        // Création de la commande si elle n'existe pas
+        if (!order) {
+            order = await Order.create({ id_user: user_id });
+        }
+
+        // Réponse avec la commande trouvée ou créée
+        return res.status(200).json({
+            valid: true,
+            order,
+        });
     } catch (error) {
-      return {
-        valid: false,
-        message: "Erreur lors de la récupération de la commande en cours",
-        error: error.message,
-      };
+        console.error(error);
+        return res.status(500).json({
+            valid: false,
+            message: "Erreur lors de la récupération de la commande en cours",
+            error: error.message,
+        });
     }
-  },
+},
+
   async deleteOrder(req, res) {
     try {
       const order = await Order.findByPk(req.params.id);
@@ -135,19 +155,16 @@ const OrderController = {
   },
   async confirmOrder(req, res) {
     try {
-      const result = await sequelize.transaction(async (t) => {
-        const order = await Order.findByPk(req.params.id, { transaction: t });
+        const order = await Order.findByPk(req.params.id);
         if (!order)
           return res.status(404).json({ message: "Commande introuvable" });
         if (order.isConfirmed)
           return res.status(400).json({ message: "Commande déjà confirmée" });
 
         order.isConfirmed = true;
-        await order.save({ transaction: t });
+        await order.save();
 
         return res.json({ message: "Commande confirmée avec succès", order });
-      });
-      return result;
     } catch (error) {
       res
         .status(500)
