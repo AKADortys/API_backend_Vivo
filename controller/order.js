@@ -2,7 +2,8 @@ const {
   Order,
   Article,
   Utilisateur,
-  ArticleOrder
+  ArticleOrder,
+  sequelize
 } = require("../config/dbconfig");
 const validator = require("validator");
 
@@ -211,6 +212,8 @@ const OrderController = {
 
         order.totalQuantity += quantity;
         order.totalPrice += articleValidation.article.price * quantity;
+        const articleorder = await ArticleOrder.findOne({where: {articleId: id_article,orderId: order.id}});
+        if(!articleorder){
 
         await ArticleOrder.create(
           {
@@ -220,7 +223,10 @@ const OrderController = {
             price: articleValidation.article.price,
             quantity: quantity,
           },
-        );
+        )} else {
+          articleorder.quantity += quantity
+          await articleorder.save();
+        }
 
         await order.save();
         res.status(201).json(order);
@@ -235,63 +241,70 @@ const OrderController = {
     }
   },
   async DeleteArticleFromOrder(req, res) {
+    const transaction = await sequelize.transaction(); // Démarrage de la transaction
     try {
       // Rechercher la commande par ID
-      const order = await Order.findByPk(req.params.id_order);
-      if (!order)
+      const order = await Order.findByPk(req.params.id_order, { transaction });
+      if (!order) {
+        await transaction.rollback();
         return res.status(404).json({ message: "Commande introuvable" });
+      }
+  
       // Récupérer l'ID de l'article à supprimer depuis le corps de la requête
       const { id_article } = req.body;
-      const artic = await Article.findByPk(id_article);
-
       if (!id_article) {
+        await transaction.rollback();
         return res.status(400).json({ message: "ID d'article manquant" });
       }
-
+  
       // Rechercher l'article dans ArticleOrder pour cette commande
       const articleOrder = await ArticleOrder.findOne({
         where: {
           orderId: order.id,
           articleId: id_article,
         },
+        transaction,
       });
-
+  
       // Si l'article n'est pas trouvé dans la commande
       if (!articleOrder) {
-        return res
-          .status(404)
-          .json({ message: "Article non trouvé dans la commande" });
+        await transaction.rollback();
+        return res.status(404).json({ message: "Article non trouvé dans la commande" });
       }
-
+  
+      // Rechercher l'article dans la table Article pour mettre à jour la quantité
+      const artic = await Article.findByPk(id_article, { transaction });
+      if (!artic) {
+        await transaction.rollback();
+        return res.status(404).json({ message: "Article introuvable" });
+      }
       artic.quantity += articleOrder.quantity;
-      
+  
       // Mise à jour des totaux de la commande
       order.totalQuantity -= articleOrder.quantity;
       order.totalPrice -= articleOrder.price * articleOrder.quantity;
-      
+  
       // Assurer que les valeurs ne soient pas négatives
-      if (order.totalQuantity < 0) order.totalQuantity = 0;
-      if (order.totalPrice < 0) order.totalPrice = 0;
-      
-      // Sauvegarder la commande mise à jour
-      await artic.save();
-      await order.save();
-
-      // Supprimer l'article de la table ArticleOrder
-      await articleOrder.destroy();
-
+      order.totalQuantity = Math.max(0, order.totalQuantity);
+      order.totalPrice = Math.max(0, order.totalPrice);
+  
+      // Sauvegarder les mises à jour
+      await order.save({ transaction });
+      await artic.save({ transaction });
+      await articleOrder.destroy({ transaction });
+  
+      await transaction.commit(); // Valider la transaction
       res.json(order);
+  
     } catch (error) {
-      console.error(
-        "Erreur lors de la suppression de l'article de la commande :",
-        error
-      ); // Log pour le serveur
+      await transaction.rollback();
+      console.error("Erreur lors de la suppression de l'article de la commande :", error); 
       res.status(500).json({
         message: "Erreur lors de la suppression de l'article de la commande",
         error: error.message,
       });
     }
-  },
+  }
 };
 
 module.exports = OrderController;
