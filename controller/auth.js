@@ -85,7 +85,6 @@ const AuthController = {
   },
   async register(req, res) {
     try {
-      console.log(req.body);
       const validation = AuthController.CheckData(req.body);
       if (!validation.valid)
         return res.status(400).json({ message: validation.message });

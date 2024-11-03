@@ -2,8 +2,15 @@ const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwtConfig');
 
 module.exports = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(403).json({ message: 'Token manquant' });
+    let token = req.headers.authorization
+
+    if (token && token.startsWith("Bearer ")) {
+        token = token.split(' ')[1];
+    } else {
+        return res.status(403).json({ message: 'Token manquant' });
+    }
+
+
 
     try {
         const decoded = jwt.verify(token, jwtConfig.secret);
