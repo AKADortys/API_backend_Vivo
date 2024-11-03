@@ -35,36 +35,6 @@ let UtilisateurController = {
     
         return { valid: true };
     },
-// Méthode pour la connexion
-async connect(req, res) {
-    try {
-        console.log(req.body)
-        // Recherche de l'utilisateur par email
-        const utilisateur = await Utilisateur.findOne({ where: { mail: req.body.mail } });
-        
-        // Vérification de l'existence de l'utilisateur
-        if (!utilisateur) {
-            return res.status(404).json({ message: 'Utilisateur introuvable' });
-        }
-        
-        // Vérification du mot de passe
-        const isPasswordValid = await bcrypt.compare(req.body.pwd, utilisateur.pwd);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Mot de passe incorrect' });
-        }
-        
-        // Suppression du mot de passe avant de retourner la réponse
-        const utilisateurData = { ...utilisateur.toJSON() };
-        delete utilisateurData.pwd;
-        console.log(utilisateurData);
-        res.json({ success: true, utilisateur: utilisateurData });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Erreur interne lors de la connexion' });
-    }
-}
-,
     // Retourne tous les utilisateurs
     async getAllUtilisateurs(req, res) {
         try {
@@ -87,18 +57,7 @@ async connect(req, res) {
             res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur' });
         }
     },
-    async addUtilisateur(req, res) {
-        try {
-            console.log(req.body);
-            const validation = UtilisateurController.CheckData(req.body);
-            if (!validation.valid) return res.status(400).json({ message: validation.message });
-            const utilisateur = await Utilisateur.create(req.body);
-            res.status(201).json(utilisateur);
-        } catch (error) {
-            console.error(error);
-            res.status(400).json({ message: 'Erreur lors de l\'ajout de l\'utilisateur' });
-        }
-    },
+
     async updateUtilisateur(req, res) {
         try {
             const utilisateur = await Utilisateur.findByPk(req.params.id);
