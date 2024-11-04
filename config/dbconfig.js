@@ -5,12 +5,17 @@ const orderModel = require('../model/order');
 const articleOrderModel = require('../model/articleOrder');
 const newsletterModel = require('../model/newsletter');
 
+const dbName = process.env.DATABASE_NAME;
+const dbHost = process.env.DATABASE_HOST;
+const dbUser = process.env.DATABASE_USER;
+const dbPass = process.env.DATABASE_PASS;
+
 const sequelize = new Sequelize(
-    'Vivo',
-    'admin',
-    'password_admin',    
+    dbName,
+    dbUser,
+    dbPass,    
     {
-       host: 'localhost',
+       host: dbHost,
        dialect: 'mysql',
        dialectOptions: {
           timezone: 'Etc/GMT+1'     
