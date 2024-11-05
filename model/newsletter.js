@@ -9,7 +9,7 @@ module.exports = (sequelize) => {
     },
     email: {
       type: DataTypes.STRING,
-      unique: true,            // Contrainte d'unicité
+      unique: true,         
       allowNull: false,
     },
     name: {
@@ -18,11 +18,11 @@ module.exports = (sequelize) => {
     },
     active: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      defaultValue: true,
     },
   }, {
-    timestamps: true,          // Ajoute createdAt et updatedAt
-    tableName: 'newsletters'    // Assure le nom exact de la table
+    timestamps: true,          
+    tableName: 'newsletters'  
   });
 
   return Newsletter;
