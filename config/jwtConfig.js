@@ -1,8 +1,8 @@
-const crypto = require('crypto');
-const secret1 = crypto.randomBytes(64).toString('hex');
-const secret = process.env.TOKEN_SECRET || secret1; 
+const secret = process.env.TOKEN_SECRET; 
 const expireIn = process.env.TOKEN_TIMEOUT || "1h"
+const refreshSecret = process.env.TOKEN_REFRESH_SECRET||"development"
 module.exports = {
     secret: secret,
     expiresIn: expireIn, // Durée de validité du token
+    refreshSecret: refreshSecret
 };

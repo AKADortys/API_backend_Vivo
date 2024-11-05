@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const jwtConfig = require("../config/jwtConfig");
 const bcrypt = require("bcrypt");
-const validator = require('validator');
+const validator = require("validator");
 const { Utilisateur } = require("../config/dbconfig");
 
 const AuthController = {
@@ -48,36 +48,42 @@ const AuthController = {
 
     return { valid: true };
   },
-  // Méthode pour la connexion
   async login(req, res) {
     try {
-      // Recherche de l'utilisateur par email
+      // Rechercher l'utilisateur et valider son mot de passe (voir ton code de connexion)
       const utilisateur = await Utilisateur.findOne({
         where: { mail: req.body.mail },
       });
-
-      // Vérification de l'existence de l'utilisateur
-      if (!utilisateur) {
+      if (!utilisateur)
         return res.status(404).json({ message: "Utilisateur introuvable" });
-      }
 
-      // Vérification du mot de passe
       const isPasswordValid = await bcrypt.compare(
         req.body.pwd,
         utilisateur.pwd
       );
-      if (!isPasswordValid) {
+      if (!isPasswordValid)
         return res.status(401).json({ message: "Mot de passe incorrect" });
-      }
 
-      // Suppression du mot de passe avant de retourner la réponse
-      const utilisateurData = { ...utilisateur.toJSON() };
+      // Supprimer le mot de passe avant de retourner la réponse
+      const utilisateurData = {...utilisateur.toJSON() };
       delete utilisateurData.pwd;
-      const token = jwt.sign({ id: utilisateur.id }, jwtConfig.secret, {
-        expiresIn: jwtConfig.expiresIn,
-      });
 
-      res.json({ success: true, utilisateur: utilisateurData, token: token });
+      // Générer access token et refresh token
+      const accessToken = jwt.sign({ id: utilisateur.id }, jwtConfig.secret, {
+        expiresIn: "15m",
+      });
+      const refreshToken = jwt.sign(
+        { id: utilisateur.id },
+        jwtConfig.refreshSecret,
+        { expiresIn: "7d" }
+      );
+
+      // Stocker le refresh token dans la session
+      req.session.refreshToken = refreshToken;
+      req.session.user = utilisateurData
+
+      // Envoyer l'access token et le refresh token dans la réponse
+      res.json({ accessToken, refreshToken, utilisateurData });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erreur interne lors de la connexion" });
@@ -97,6 +103,39 @@ const AuthController = {
         .json({ message: "Erreur lors de l'ajout de l'utilisateur" });
     }
   },
+  async logout(req, res) {
+    // Supprimer le refresh token de la session
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ message: "Erreur lors de la déconnexion" });
+        }
+        res.clearCookie('connect.sid'); // Supprime le cookie de session
+        res.json({ message: "Déconnexion réussie" });
+    });
+},
+async refreshToken(req, res) {
+  const refreshToken = req.session.refreshToken;
+
+  if (!refreshToken) {
+      return res.status(403).json({ message: "Token de rafraîchissement manquant" });
+  }
+
+  try {
+      // Vérifier la validité du refresh token
+      const decoded = jwt.verify(refreshToken, jwtConfig.refreshSecret);
+
+      // Générer un nouveau access token
+      const newAccessToken = jwt.sign({ id: decoded.id }, jwtConfig.secret, { expiresIn: jwtConfig.expiresIn });
+
+      // Retourner le nouveau access token
+      res.json({ accessToken: newAccessToken });
+  } catch (error) {
+      console.error(error);
+      res.status(403).json({ message: "Token de rafraîchissement invalide ou expiré" });
+  }
+}
+
+
 };
 
 module.exports = AuthController;
