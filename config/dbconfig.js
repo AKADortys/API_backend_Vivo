@@ -1,9 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const utilisateurModel = require('../model/utilisateur');
-const articleModel = require('../model/article');
-const orderModel = require('../model/order');
-const articleOrderModel = require('../model/articleOrder');
-const newsletterModel = require('../model/newsletter');
+const utilisateurModel = require('../model/Utilisateur');
+const articleModel = require('../model/Article');
+const orderModel = require('../model/Order');
+const articleOrderModel = require('../model/ArticleOrder');
+const newsletterModel = require('../model/Newsletter');
 
 const dbName = process.env.DATABASE_NAME;
 const dbHost = process.env.DATABASE_HOST;

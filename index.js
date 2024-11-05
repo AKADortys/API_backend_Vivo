@@ -9,7 +9,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(cors());
-// Middleware pour utiliser les routes
+
 app.use('/user', require('./routes/utilisateur'));
 app.use('/article',require('./routes/article'));
 app.use('/order',require('./routes/order'));

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const UtilisateurCtrl = require('../controller/utilisateur');
-const authMiddleware = require('../middleware/auth');
+const UtilisateurCtrl = require('../controller/utilisateur-controller');
+const authMiddleware = require('../middleware/token-check');
 
 router.get('/getAll',authMiddleware, UtilisateurCtrl.getAllUtilisateurs);
 router.get('/getUser/:id',authMiddleware, UtilisateurCtrl.getUtilisateurById);

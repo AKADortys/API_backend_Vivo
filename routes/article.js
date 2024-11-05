@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
-const ArticleController = require('../controller/article')
+const authMiddleware = require('../middleware/token-check');
+const ArticleController = require('../controller/article-controller')
 
 router.get('/getAll',ArticleController.getAllArticles);
 router.get('/getArticle/:id',ArticleController.getArticleById);

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
-const OrderController = require('../controller/order');
+const authMiddleware = require('../middleware/token-check');
+const OrderController = require('../controller/order-controller');
 
 router.get('/getAll',authMiddleware, OrderController.getAllOrders);
 router.get('/getOrder/:id',authMiddleware, OrderController.getOrderById);
