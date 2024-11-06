@@ -81,9 +81,10 @@ const AuthController = {
       // Stocker le refresh token dans la session
       req.session.refreshToken = refreshToken;
       req.session.user = utilisateurData
+      utilisateurData.accessToken = accessToken;
 
-      // Envoyer l'access token et le refresh token dans la réponse
-      res.json({ accessToken, refreshToken, utilisateurData });
+      // Envoyer l'access token et le refresh token dans la réponse (temporaire) !!!!!!!!
+      res.json({success:true, user : utilisateurData});
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erreur interne lors de la connexion" });
@@ -95,6 +96,7 @@ const AuthController = {
       if (!validation.valid)
         return res.status(400).json({ message: validation.message });
       const utilisateur = await Utilisateur.create(req.body);
+      delete utilisateur.pwd;
       res.status(201).json(utilisateur);
     } catch (error) {
       console.error(error);
