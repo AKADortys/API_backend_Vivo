@@ -40,7 +40,7 @@ const ArticleOrder = articleOrderModel(sequelize, DataTypes);
 const Newsletter = newsletterModel(sequelize, DataTypes);
 
 // Synchronisation des modèles
-sequelize.sync({ force: true })
+sequelize.sync({ force: false })
    .then(() => {
       console.log('Modèles synchronisés avec la base de données');
    })
