@@ -5,5 +5,10 @@ module.exports = {
   secret: secret,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: true, httpOnly: true, maxAge: timeout },
+  cookie: { 
+    secure: true, // `true` uniquement en production
+    httpOnly: true,
+    maxAge: timeout,
+    sameSite: 'lax' // 'strict' ou 'none' selon votre politique cross-origin
+  }
 };

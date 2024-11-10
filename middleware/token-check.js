@@ -2,11 +2,12 @@ const jwt = require("jsonwebtoken");
 const jwtConfig = require("../config/jwtConfig");
 
 module.exports = (req, res, next) => {
-  let token = req.headers.authorization;
-
+  let token = req.headers||""; // Accède d'abord au token de session
+  
+  console.log("étape1\n\n")
   // Vérifie d'abord le token dans la session si non présent dans les en-têtes
-  if (!token && req.session && req.session.token) {
-    token = req.session.token;
+  if (!token && req.session && req.session.accessToken) {
+    token = req.session.accessToken;
   }
 
   // Validation de l'en-tête Authorization

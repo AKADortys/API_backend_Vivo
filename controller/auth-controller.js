@@ -80,8 +80,10 @@ const AuthController = {
 
       // Stocker le refresh token dans la session
       req.session.refreshToken = refreshToken;
+      req.session.accessToken = accessToken;
       req.session.user = utilisateurData
       utilisateurData.accessToken = accessToken;
+
 
       // Envoyer l'access token et le refresh token dans la réponse (temporaire) !!!!!!!!
       res.json({success:true, user : utilisateurData});

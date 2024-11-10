@@ -9,7 +9,10 @@ dotenv.config();
 const app = express();
 app.use(session(require('./config/sessionConfig')));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+    credentials: true
+}));
+
 
 app.use('/user', require('./routes/utilisateur'));
 app.use('/article', require('./routes/article'));
