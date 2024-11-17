@@ -8,7 +8,6 @@ module.exports = {
   cookie: { 
     secure: true, // `true` uniquement en production
     httpOnly: true,
-    maxAge: timeout,
-    sameSite: 'lax' // 'strict' ou 'none' selon votre politique cross-origin
+    maxAge: timeout
   }
 };
