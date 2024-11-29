@@ -3,7 +3,6 @@ const jwtConfig = require("../config/jwtConfig");
 
 module.exports = (req, res, next) => {
   let token = req.headers.authorization;
-  console.log(req.headers)
 
   // Validation de l'en-tête Authorization
   if (token && token.startsWith("Bearer ")) {

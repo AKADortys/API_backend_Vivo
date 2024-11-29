@@ -118,7 +118,7 @@ const AuthController = {
     });
 },
 async refreshToken(req, res) {
-  const refreshToken = req.session.refreshToken;
+  const refreshToken = req.headers.Authorization;
 
   if (!refreshToken) {
       return res.status(403).json({ message: "Token de rafraîchissement manquant" });
