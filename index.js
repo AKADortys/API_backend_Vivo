@@ -15,6 +15,7 @@ app.use(cors({
 
 
 app.use('/user', require('./routes/utilisateur'));
+app.use('/ArticleOrder', require('./routes/articleOrder'));
 app.use('/article', require('./routes/article'));
 app.use('/order', require('./routes/order'));
 app.use('/auth', require('./routes/auth'));
