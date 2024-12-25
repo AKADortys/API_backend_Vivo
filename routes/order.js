@@ -11,5 +11,6 @@ router.put('/:id/confirm',authMiddleware, OrderController.confirmOrder);
 router.put('/:id/available',authMiddleware, OrderController.setOrderAvailable);
 router.post('/:id_order/articlesAdd',authMiddleware, OrderController.AddArticleToOrder);
 router.delete('/:id_order/articlesDel',authMiddleware, OrderController.DeleteArticleFromOrder);
+router.get('/getUserOrders/:user_id',authMiddleware, OrderController.getUserOrder);
 
 module.exports = router;

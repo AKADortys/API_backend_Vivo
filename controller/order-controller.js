@@ -96,7 +96,36 @@ const OrderController = {
         .json({ message: "Erreur lors de la récupération de la commande" });
     }
   },
-
+  async getUserOrder(req,res){
+    try {
+      const user_id = req.params.user_id;
+      // Validation de `user_id`
+      if (!user_id ||!validator.isInt(user_id.toString())) {
+        return res.status(400).json({
+          valid: false,
+          message: "Paramètre manquant ou invalide: user_id",
+        });
+      }
+      // Recherche de l'utilisateur
+      const user = await Utilisateur.findByPk(user_id);
+      if (!user) {
+        return res.status(404).json({
+          valid: false,
+          message: "Utilisateur introuvable",
+        });
+      }
+      // Recherche des commandes pour cet utilisateur
+      const orders = await Order.findAll({ where: { id_user: user_id } });
+      res.json(orders);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        valid: false,
+        message: "Erreur lors de la récupération des commandes pour l'utilisateur",
+        error: error.message,
+      });
+    }
+  },
   async GetCurrentOrder(req, res) {
     try {
       const user_id = req.params.user_id;
