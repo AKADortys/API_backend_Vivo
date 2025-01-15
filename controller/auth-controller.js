@@ -65,7 +65,7 @@ const AuthController = {
         return res.status(401).json({ message: "Mot de passe incorrect" });
 
       // Supprimer le mot de passe avant de retourner la réponse
-      const utilisateurData = {...utilisateur.toJSON() };
+      const utilisateurData = { ...utilisateur.toJSON() };
       delete utilisateurData.pwd;
 
       // Générer access token et refresh token
@@ -81,12 +81,11 @@ const AuthController = {
       // Stocker le refresh token dans la session
       req.session.refreshToken = refreshToken;
       req.session.accessToken = accessToken;
-      req.session.user = utilisateurData
+      req.session.user = utilisateurData;
       utilisateurData.accessToken = accessToken;
 
-
       // Envoyer l'access token et le refresh token dans la réponse (temporaire) !!!!!!!!
-      res.json({success:true, user : utilisateurData});
+      res.json({ success: true, user: utilisateurData });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erreur interne lors de la connexion" });
@@ -109,37 +108,43 @@ const AuthController = {
   },
   async logout(req, res) {
     // Supprimer le refresh token de la session
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).json({ message: "Erreur lors de la déconnexion" });
-        }
-        res.clearCookie('connect.sid'); // Supprime le cookie de session
-        res.json({ message: "Déconnexion réussie" });
+    req.session.destroy((err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "Erreur lors de la déconnexion" });
+      }
+      res.clearCookie("connect.sid"); // Supprime le cookie de session
+      res.json({ message: "Déconnexion réussie" });
     });
-},
-async refreshToken(req, res) {
-  const refreshToken = req.headers.Authorization;
+  },
+  async refreshToken(req, res) {
+    const refreshToken = req.session.refreshToken;
 
-  if (!refreshToken) {
-      return res.status(403).json({ message: "Token de rafraîchissement manquant" });
-  }
+    if (!refreshToken) {
+      return res
+        .status(403)
+        .json({ message: "Token de rafraîchissement manquant" });
+    }
 
-  try {
+    try {
       // Vérifier la validité du refresh token
       const decoded = jwt.verify(refreshToken, jwtConfig.refreshSecret);
 
       // Générer un nouveau access token
-      const newAccessToken = jwt.sign({ id: decoded.id }, jwtConfig.secret, { expiresIn: jwtConfig.expiresIn });
+      const newAccessToken = jwt.sign({ id: decoded.id }, jwtConfig.secret, {
+        expiresIn: jwtConfig.expiresIn,
+      });
 
       // Retourner le nouveau access token
       res.json({ accessToken: newAccessToken });
-  } catch (error) {
+    } catch (error) {
       console.error(error);
-      res.status(403).json({ message: "Token de rafraîchissement invalide ou expiré" });
-  }
-}
-
-
+      res
+        .status(403)
+        .json({ message: "Token de rafraîchissement invalide ou expiré" });
+    }
+  },
 };
 
 module.exports = AuthController;

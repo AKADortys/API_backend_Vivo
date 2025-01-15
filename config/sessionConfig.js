@@ -5,9 +5,8 @@ module.exports = {
   secret: secret,
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    secure: true, // `true` uniquement en production
+  cookie: {
     httpOnly: true,
-    maxAge: timeout
-  }
+    maxAge: timeout,
+  },
 };
