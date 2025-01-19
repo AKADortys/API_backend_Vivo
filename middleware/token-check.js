@@ -14,7 +14,6 @@ module.exports = (req, res, next) => {
   try {
     // Vérifie et décode le token
     const decoded = jwt.verify(token, jwtConfig.secret);
-    req.userId = decoded.id;
     next();
   } catch (error) {
     // Gère les erreurs spécifiques liées au token
