@@ -3,30 +3,30 @@ const {
   Article,
   Utilisateur,
   ArticleOrder,
-  sequelize
+  sequelize,
 } = require("../config/dbconfig");
 const validator = require("validator");
 
 const OrderController = {
   async validateArticle(articleId, requiredQuantity) {
     try {
-        const article = await Article.findByPk(articleId);
-        if (!article) return { valid: false, message: "Article introuvable" };
-        if (!article.available)
-          return {
-        valid: false,
-        message: "L'article est indisponible pour la commande !",
-      };
+      const article = await Article.findByPk(articleId);
+      if (!article) return { valid: false, message: "Article introuvable" };
+      if (!article.available)
+        return {
+          valid: false,
+          message: "L'article est indisponible pour la commande !",
+        };
       if (article.quantity < requiredQuantity)
         return {
-      valid: false,
-      message: "Stock insuffisant pour la commande !",
-    };
-    
-    article.quantity -= requiredQuantity;
-        await article.save();
+          valid: false,
+          message: "Stock insuffisant pour la commande !",
+        };
 
-        return { valid: true, article };
+      article.quantity -= requiredQuantity;
+      await article.save();
+
+      return { valid: true, article };
     } catch (error) {
       return {
         valid: false,
@@ -96,11 +96,11 @@ const OrderController = {
         .json({ message: "Erreur lors de la récupération de la commande" });
     }
   },
-  async getUserOrder(req,res){
+  async getUserOrder(req, res) {
     try {
       const user_id = req.params.user_id;
       // Validation de `user_id`
-      if (!user_id ||!validator.isInt(user_id.toString())) {
+      if (!user_id || !validator.isInt(user_id.toString())) {
         return res.status(400).json({
           valid: false,
           message: "Paramètre manquant ou invalide: user_id",
@@ -121,11 +121,13 @@ const OrderController = {
       console.error(error);
       return res.status(500).json({
         valid: false,
-        message: "Erreur lors de la récupération des commandes pour l'utilisateur",
+        message:
+          "Erreur lors de la récupération des commandes pour l'utilisateur",
         error: error.message,
       });
     }
   },
+
   async GetCurrentOrder(req, res) {
     try {
       const user_id = req.params.user_id;
@@ -221,52 +223,49 @@ const OrderController = {
   },
   async AddArticleToOrder(req, res) {
     try {
-        const order = await Order.findByPk(req.params.id_order);
-        if (!order)
-          return res.status(404).json({ message: "Commande introuvable" });
+      const order = await Order.findByPk(req.params.id_order);
+      if (!order)
+        return res.status(404).json({ message: "Commande introuvable" });
 
-        const { id_article, quantity } = req.body;
-        if (!id_article || !quantity || isNaN(quantity) || quantity <= 0) {
-          return res
-            .status(400)
-            .json({ message: "ID d'article ou quantité invalide" });
-        }
+      const { id_article, quantity } = req.body;
+      if (!id_article || !quantity || isNaN(quantity) || quantity <= 0) {
+        return res
+          .status(400)
+          .json({ message: "ID d'article ou quantité invalide" });
+      }
 
-        const articleValidation = await OrderController.validateArticle(
-          id_article,
-          quantity
-        );
-        if (!articleValidation.valid)
-          return res.status(400).json({ message: articleValidation.message });
+      const articleValidation = await OrderController.validateArticle(
+        id_article,
+        quantity
+      );
+      if (!articleValidation.valid)
+        return res.status(400).json({ message: articleValidation.message });
 
-        order.totalQuantity += quantity;
-        order.totalPrice += articleValidation.article.price * quantity;
-        const articleorder = await ArticleOrder.findOne({where: {articleId: id_article,orderId: order.id}});
-        if(!articleorder){
-
-        await ArticleOrder.create(
-          {
-            articleId: articleValidation.article.id,
-            orderId: order.id,
-            label: articleValidation.article.label,
-            price: articleValidation.article.price,
-            quantity: quantity,
-          },
-        )} else {
-          articleorder.quantity += quantity
-          await articleorder.save();
-        }
-
-        await order.save();
-        res.status(201).json(order);
-
-    } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Erreur lors de l'ajout de l'article",
-          error: error.message,
+      order.totalQuantity += quantity;
+      order.totalPrice += articleValidation.article.price * quantity;
+      const articleorder = await ArticleOrder.findOne({
+        where: { articleId: id_article, orderId: order.id },
+      });
+      if (!articleorder) {
+        await ArticleOrder.create({
+          articleId: articleValidation.article.id,
+          orderId: order.id,
+          label: articleValidation.article.label,
+          price: articleValidation.article.price,
+          quantity: quantity,
         });
+      } else {
+        articleorder.quantity += quantity;
+        await articleorder.save();
+      }
+
+      await order.save();
+      res.status(201).json(order);
+    } catch (error) {
+      res.status(500).json({
+        message: "Erreur lors de l'ajout de l'article",
+        error: error.message,
+      });
     }
   },
   async DeleteArticleFromOrder(req, res) {
@@ -278,14 +277,14 @@ const OrderController = {
         await transaction.rollback();
         return res.status(404).json({ message: "Commande introuvable" });
       }
-  
+
       // Récupérer l'ID de l'article à supprimer depuis le corps de la requête
       const { id_article } = req.body;
       if (!id_article) {
         await transaction.rollback();
         return res.status(400).json({ message: "ID d'article manquant" });
       }
-  
+
       // Rechercher l'article dans ArticleOrder pour cette commande
       const articleOrder = await ArticleOrder.findOne({
         where: {
@@ -294,13 +293,15 @@ const OrderController = {
         },
         transaction,
       });
-  
+
       // Si l'article n'est pas trouvé dans la commande
       if (!articleOrder) {
         await transaction.rollback();
-        return res.status(404).json({ message: "Article non trouvé dans la commande" });
+        return res
+          .status(404)
+          .json({ message: "Article non trouvé dans la commande" });
       }
-  
+
       // Rechercher l'article dans la table Article pour mettre à jour la quantité
       const artic = await Article.findByPk(id_article, { transaction });
       if (!artic) {
@@ -308,32 +309,34 @@ const OrderController = {
         return res.status(404).json({ message: "Article introuvable" });
       }
       artic.quantity += articleOrder.quantity;
-  
+
       // Mise à jour des totaux de la commande
       order.totalQuantity -= articleOrder.quantity;
       order.totalPrice -= articleOrder.price * articleOrder.quantity;
-  
+
       // Assurer que les valeurs ne soient pas négatives
       order.totalQuantity = Math.max(0, order.totalQuantity);
       order.totalPrice = Math.max(0, order.totalPrice);
-  
+
       // Sauvegarder les mises à jour
       await order.save({ transaction });
       await artic.save({ transaction });
       await articleOrder.destroy({ transaction });
-  
+
       await transaction.commit(); // Valider la transaction
       res.json(order);
-  
     } catch (error) {
       await transaction.rollback();
-      console.error("Erreur lors de la suppression de l'article de la commande :", error); 
+      console.error(
+        "Erreur lors de la suppression de l'article de la commande :",
+        error
+      );
       res.status(500).json({
         message: "Erreur lors de la suppression de l'article de la commande",
         error: error.message,
       });
     }
-  }
+  },
 };
 
 module.exports = OrderController;
