@@ -85,18 +85,4 @@ Ce projet est une API backend développée avec le framework Express. L’API in
 - [sequelize](https://www.npmjs.com/package/sequelize) : ^6.37.5
 - [validator](https://www.npmjs.com/package/validator) : ^13.12.0
 
-## Structure du projet
-```
-├── src
-│   ├── controllers
-│   ├── models
-│   ├── routes
-│   └── utils
-├── .env
-├── package.json
-├── server.js
-```
-
-## Licence
-Ce projet est sous licence [Votre Licence].
 
