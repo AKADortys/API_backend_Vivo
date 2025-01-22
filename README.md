@@ -66,8 +66,37 @@ Ce projet est une API backend développée avec le framework Express. L’API in
 - **GET** `/order/getUserOrders/:id` : Récupérer toutes les commandes d'un utilisateur
 - **POST** `/order/2/articlesAdd` : Ajouter un ou plusieurs articles à une commande
 - **PUT** `/order/1/confirm` : Confirmer une commande
-- **PUT** `/order/1/available` : Vérifier la disponibilité des articles d'une commande
+- **GET** `/order/1/available` : Vérifier la disponibilité des articles d'une commande
 - **DELETE** `/order/delete/:id` : Supprimer une commande
 - **GET** `/order/getOrder/:id` : Récupérer une commande par son ID
 - **GET** `/order/getAll` : Récupérer toutes les commandes
 - **GET** `/order/current/:id` : Récupérer la commande en cours pour un utilisateur
+
+## Dépendances
+- [bcrypt](https://www.npmjs.com/package/bcrypt) : ^5.1.1
+- [body-parser](https://www.npmjs.com/package/body-parser) : ^1.20.3
+- [cors](https://www.npmjs.com/package/cors) : ^2.8.5
+- [crypto](https://www.npmjs.com/package/crypto) : ^1.0.1
+- [dotenv](https://www.npmjs.com/package/dotenv) : ^16.4.5
+- [express](https://www.npmjs.com/package/express) : ^4.21.1
+- [express-session](https://www.npmjs.com/package/express-session) : ^1.18.1
+- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) : ^9.0.2
+- [mysql2](https://www.npmjs.com/package/mysql2) : ^3.11.3
+- [sequelize](https://www.npmjs.com/package/sequelize) : ^6.37.5
+- [validator](https://www.npmjs.com/package/validator) : ^13.12.0
+
+## Structure du projet
+```
+├── src
+│   ├── controllers
+│   ├── models
+│   ├── routes
+│   └── utils
+├── .env
+├── package.json
+├── server.js
+```
+
+## Licence
+Ce projet est sous licence [Votre Licence].
+
