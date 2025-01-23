@@ -76,9 +76,10 @@ let UtilisateurController = {
 
   async updateUtilisateur(req, res) {
     try {
-      if (req.session.user.id_user !== parseInt(req.params.id)) {
-        return res.status(403).json({ message: "Accès refusé" });
-      }
+      // if (req.session.user) console.log(req.session.user);
+      // if (req.session.user.id_user !== parseInt(req.params.id)) {
+      //   return res.status(403).json({ message: "Accès refusé" });
+      // }
       const utilisateur = await Utilisateur.findByPk(req.params.id);
       if (!utilisateur)
         return res.status(404).json({ message: "Utilisateur introuvable" });
