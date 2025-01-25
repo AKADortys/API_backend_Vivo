@@ -8,11 +8,17 @@ Ce projet est une API backend développée avec le framework Express. L’API in
 - **Node.js** (version 14 ou ultérieure)
 - **Serveur MySQL** fonctionnel
 - **Fichier `.env`** configuré avec les informations suivantes :
-  - `DB_HOST` : Adresse du serveur MySQL
-  - `DB_USER` : Nom d'utilisateur de la base de données
-  - `DB_PASSWORD` : Mot de passe de la base de données
-  - `DB_NAME` : Nom de la base de données
-  - `PORT` : Port d'exécution de l'application (par défaut : 3000)
+- DATABASE_NAME = ""
+- DATABASE_HOST = ""
+- DATABASE_USER = ""
+- DATABASE_PASS = ""
+
+- TOKEN_SECRET = ""
+- TOKEN_TIMEOUT = ""
+- TOKEN_REFRESH_SECRET = ""
+
+- SESSION_SECRET = ""
+- SESSION_TIMEOUT = ""
 
 ## Installation
 
